@@ -1,6 +1,5 @@
 {
   "name": "Multi-Column Menu",
-
   "namespace":"JHU\\MultiColumnMenu",
   "documentation": "ReadMe.pdf",
   "description": "Adds an action tag (@COLUMNS), which takes a single integer and splits a set of choices into the specified number of columns (e.g. @COLUMNS=5).",
