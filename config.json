@@ -1,9 +1,9 @@
 {
-  "name": "Multi-Column Checkboxes",
+  "name": "Multi-Column Choices",
 
   "namespace":"JHU\\MultiColumnMenu",
   "documentation": "ReadMe.pdf",
-  "description": "Adds an action tag (@COLUMNSPLIT), which that takes a single integer (2-10) and splits a set of checkbox options into the specified number of columns.",
+  "description": "Adds an action tag (@COLUMNS), which takes a single integer and splits a set of choices into the specified number of columns (e.g. @COLUMNS=5).",
 
   "authors": [
     {
