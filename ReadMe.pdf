@@ -1,0 +1,2 @@
+# Multi-Column-Checkboxes
+This External Module adds the ability to use the @COLUMNSPLIT action tag. This tag will take a checkbox field and split the choices into the number of columns supplied with the action tag.
