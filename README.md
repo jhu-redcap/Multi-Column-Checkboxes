@@ -19,19 +19,24 @@ Action Tag Section: @COLUMNS=5
 - Works with field embedding. The field using @COLUMNS can be embedded. Also, the menu being split can include embedded fields (e.g. including a text field after an &quot;Other&quot; option).
 - When downloading as a PDF, you MUST use the &quot;(via browser&#39;s _Save as PDF)_&quot; option.
 
-![](image1.png "Print to PDF")
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![](image1.png "Print to PDF")
 
 - If an invalid parameter value is provided (0, -1, a…) a default of 1-column will be used.
 
-### See next page for examples
+___
 
-### Example:
+## Example:
+
+### Field Configuration:
+Add action tag with desired number of columns.
 ![](image2.png "Field Configuration")
 
-**Resulting Output (checkboxes):** Note how the options are organized vertically based on the field alignment.
+### Resulting Output (checkboxes):
+Note that options are organized vertically based on the field alignment.
 ![](image3.png "Checkboxes")
 
-**Resulting Output (radio buttons):** Note how the options are organized horizontally based on the field alignment.
+### Resulting Output (radio buttons):
+Note that options are organized horizontally based on the field alignment.
 ![](image4.png "Radio Buttons")
 
 Johns Hopkins University April 28, 2022
