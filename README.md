@@ -41,4 +41,6 @@ Note that options are organized vertically based on the field alignment.
 Note that options are organized horizontally based on the field alignment.
 ![](images/image4.png "Radio Buttons")
 
-Johns Hopkins University April 28, 2022
+Johns Hopkins University
+Released: April 28, 2022
+Last Updated: June 23, 2022
