@@ -113,7 +113,7 @@ class MultiColumnMenu extends \ExternalModules\AbstractExternalModule
                                 // The nesteed for() loops will hit every possible position (every row/column position).
                                 // However, the choices may not totally fill the last row/column (e.g. a 5x5 table with only 23 choices)
                                 // Before adding it, check if the current ArrayPos (row/column position) is associated with an actual choice.
-                                if (ArrayPos < NumberOfChoices)  // May run out of elements (selectable options) BEFORE filling up the last column.
+                                if (ArrayPos < NumberOfChoices && FieldChoices[0].className != 'choicevert hidden')  // May run out of elements (selectable options) BEFORE filling up the last column.
                                 {
                                     Choices_NewHTML = Choices_NewHTML + "<td>" + FieldChoices[ArrayPos].parentElement.innerHTML + "</td>";
                                     ChoicesArray[ArrayPos] = FieldChoices[ArrayPos].parentElement; // add existing element to new array
@@ -135,7 +135,7 @@ class MultiColumnMenu extends \ExternalModules\AbstractExternalModule
                                 // The nesteed for() loops will hit every possible position (every row/column position).
                                 // However, the choices may not totally fill the last row/column (e.g. a 5x5 table with only 23 choices)
                                 // Before adding it, check if the current ArrayPos (row/column position) is associated with an actual choice.
-                                if (ArrayPos < NumberOfChoices) {
+                                if (ArrayPos < NumberOfChoices && FieldChoices[0].className != 'choicehoriz hidden') {
                                     Choices_NewHTML = Choices_NewHTML + "<td>" + FieldChoices[ArrayPos].parentElement.innerHTML + "</td>";
                                     ChoicesArray[ArrayPos] = FieldChoices[ArrayPos].parentElement; // add existing element to new array
                                 }
