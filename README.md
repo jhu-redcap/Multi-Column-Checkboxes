@@ -7,6 +7,7 @@ The @COLUMNS action tag takes a single integer parameter and splits a set of opt
 ### Usage:
 
 Action Tag Section: @COLUMNS=5
+
 Note: When used in conjunction other action tags (e.g. @NONEOFTHEABOVE), positioning @COLUMNS as the last action tag may be required to avoid issues with some system configurations.
 
 ### Specifications:
