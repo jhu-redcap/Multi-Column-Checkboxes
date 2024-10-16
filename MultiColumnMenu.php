@@ -12,38 +12,44 @@ class MultiColumnMenu extends \ExternalModules\AbstractExternalModule
 
 	private $tag = '@COLUMNS';  //assign the tag name
 
-    function getTags()  //Use Andy's helper class to ge the action tags in use
+    function getTags()  //Use Andy's helper class to get the action tags in use
     {
         if (!class_exists('\JHU\MultiColumnMenu\ActionTagHelper')) include_once('classes/ActionTagHelper.php');
         $action_tag_results = ActionTagHelper::getActionTags($this->tag);
-        //print "<pre>" . print_r($action_tag_results,true) . "</pre>"; // print if needed for debug
         return $action_tag_results;
     }
     function redcap_survey_page($project_id)
     {
-        $tag_results = $this->getTags();
-        $TagArray = array();
-        foreach ($tag_results as $tagname)
-        {
-            foreach ($tagname as $mdaKey => $mdaData) {
-                $TagArray[$mdaKey] = $mdaData["params"];
+        if ($this->delayModuleExecution())
+        { // Delay module execution
+            $tag_results = $this->getTags();            // Get the action tags in use
+            $TagArray = array();
+            foreach ($tag_results as $tagname)
+            {
+                foreach ($tagname as $mdaKey => $mdaData)
+                {
+                    $TagArray[$mdaKey] = $mdaData["params"];// Store the tag name and parameters
+                }
             }
-        }
-        $this->includeJS($TagArray);
-    }
+            $this->includeJS($TagArray);// Run the JavaScript
+        }// end delay
+    }// end redcap_survey_page
 
     function redcap_data_entry_form($project_id,$record) // yes this is duplicate code, but I fell it is better to use the built in survey_page and entry_form instead of every_page_top
     {
-        $tag_results = $this->getTags();
-        $TagArray = array();
-    foreach ($tag_results as $tagname)
-    {
-        foreach ($tagname as $mdaKey => $mdaData) {
-            $TagArray[$mdaKey] = $mdaData["params"];
-        }
-    }
-        $this->includeJS($TagArray);
-    }
+        if ($this->delayModuleExecution()){// Delay module execution
+            $tag_results = $this->getTags();// Get the action tags in use
+            $TagArray = array();
+            foreach ($tag_results as $tagname)
+            {
+                foreach ($tagname as $mdaKey => $mdaData) {
+                    $TagArray[$mdaKey] = $mdaData["params"];// Store the tag name and parameters
+                }
+            }
+            $this->includeJS($TagArray);// Run the JavaScript
+        }// end delay
+    }// end redcap_data_entry_form
+
 
     protected function includeJS($taggedFields) {     // PHP function that will run all the needed JavaScript
 
@@ -60,104 +66,143 @@ class MultiColumnMenu extends \ExternalModules\AbstractExternalModule
                 font-size: 90%;
                 white-space:nowrap;
             }
+            /* Grid container */
+            .mcem-grid-container {
+                display: grid;
+                grid-gap: 10px;
+                padding: 10px;
+            }
+
+            /* Vertical layout */
+            .mcem-grid-container.mcem-vertical {
+                grid-template-columns: repeat(var(--columns), 1fr);
+            }
+
+            /* Horizontal layout */
+            .mcem-grid-container.mcem-horizontal {
+                grid-template-columns: repeat(var(--columns), 1fr);
+            }
+
+            /* Each choice is part of the grid */
+            .mcem-grid-item {
+                display: flex;
+                align-items: center;
+            }
+
+            /* Hidden elements remain in the grid, but are invisible */
+            .hidden {
+                display: none;
+            }
+
+
         </style>
         <script type="text/javascript">
             window.addEventListener("load", function() {
                 var taggedFields = JSON.parse('<?php echo json_encode($taggedFields); ?>');
+
                 Object.keys(taggedFields).forEach(key => {
+                    var columns = parseInt(taggedFields[key]) || 1;
+                    if (columns < 1) columns = 1;
 
-                     // Pull the number of columns specified in the action tag (parseInt() converts the value to Integer or NaN if empty or invalid)
-                    var columns = parseInt(taggedFields[key]); 
-
-                    // Default to 1 column if an invalid column count was entered in the action tag (0, -1, letters ...).
-                    // NOTE: If non-numeric, parseInt (above) sets it to NaN.
-                    if (columns < 1 || isNaN(columns)) {
-                        columns = 1;
+                    var checkboxFldname = '__chkn__' + key;
+                    var checkboxElements = document.getElementsByName(checkboxFldname);
+                    if (checkboxElements.length > 0) {
+                        if (!checkboxElements[0].hasAttribute('data-layout-processed')) {
+                            applyGridLayout(checkboxFldname, columns, 'checkbox');
+                        }
                     }
 
-                    var fldname = '__chkn__' + key;
-                    SplitChoicesIntoColumns(fldname,columns);
-                    var fldname = key + '___radio';
-                    SplitChoicesIntoColumns(fldname,columns);
+                    var radioFldname = key + '___radio';
+                    var radioElements = document.getElementsByName(radioFldname);
+                    if (radioElements.length > 0) {
+                        if (!radioElements[0].hasAttribute('data-layout-processed')) {
+                            applyGridLayout(radioFldname, columns, 'radio');
+                        }
+                    }
                 });
             });
-            function SplitChoicesIntoColumns(ElementName, cols) {
+            function applyGridLayout(ElementName, cols, fieldType) {
+                var FieldChoices = document.getElementsByName(ElementName);
+                var NumberOfChoices = FieldChoices.length;
 
-                var FieldChoices = document.getElementsByName(ElementName); // Pull the choices for this field
-                var NumberOfChoices = FieldChoices.length;  // Get number of choices associated with this field
+                var visibleChoices = [];
+                var hiddenChoices = [];
 
-                // No need to do anything if there is only one choice! (or if the parameter is invalid, which sets columns=1, above)
-                if (NumberOfChoices > 1) {
-                    // initialize arrays to be used in the loops
-                    var ChoicesArray = [];
-
-                    // initialize
-                    var Choices_NewHTML = '<table class="msnopad">';
-
-                    var rows = 0;
-                    var ArrayPos = 0;
-
-                    rows = Math.ceil(NumberOfChoices / cols);
-
-                    // Now that we know now many columns and rows are involved, we can start building the HTML using two "for" loops (one for rows and one for columns)
-
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // This code orders the options VERTICALLY (e.g. 1, 2, 3 will be in COLUMN one, 4, 5, 6 in column 2, etc...)
-                    if(FieldChoices[0].parentElement.className === 'choicevert') {
-                        for (r = 0; r < rows; r++) {
-                            Choices_NewHTML = Choices_NewHTML + "<tr>";
-                            for (c = 0; c < cols; c++)
-                            {
-                                ArrayPos = (c * rows) + r;
-
-                                // The nesteed for() loops will hit every possible position (every row/column position).
-                                // However, the choices may not totally fill the last row/column (e.g. a 5x5 table with only 23 choices)
-                                // Before adding it, check if the current ArrayPos (row/column position) is associated with an actual choice.
-                                if (ArrayPos < NumberOfChoices && FieldChoices[0].className != 'choicevert hidden')  // May run out of elements (selectable options) BEFORE filling up the last column.
-                                {
-                                    Choices_NewHTML = Choices_NewHTML + "<td>" + FieldChoices[ArrayPos].parentElement.innerHTML + "</td>";
-                                    ChoicesArray[ArrayPos] = FieldChoices[ArrayPos].parentElement; // add existing element to new array
-                                }
-                            }
-                            Choices_NewHTML = Choices_NewHTML + "</tr>";
-                        }
+                // Separate visible and hidden choices
+                for (var i = 0; i < NumberOfChoices; i++) {
+                    var parentElement = FieldChoices[i].parentElement;
+                    if (parentElement.classList.contains('hidden')) {
+                        hiddenChoices.push(parentElement); // Store hidden elements
+                    } else {
+                        visibleChoices.push(parentElement); // Store visible elements
                     }
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // This code orders the options HORIZONTALLY (e.g. 1, 2, 3 will be in ROW one, 4, 5, 6 in column 2, etc...)
-                    if(FieldChoices[0].parentElement.className === 'choicehoriz') {
-                        for (r = 0; r < rows; r++) {
-                            Choices_NewHTML = Choices_NewHTML + "<tr>";
-                            for (c = 0; c < cols; c++) {
-                                ArrayPos = (r * cols) + c;
-
-                                // The nesteed for() loops will hit every possible position (every row/column position).
-                                // However, the choices may not totally fill the last row/column (e.g. a 5x5 table with only 23 choices)
-                                // Before adding it, check if the current ArrayPos (row/column position) is associated with an actual choice.
-                                if (ArrayPos < NumberOfChoices && FieldChoices[0].className != 'choicehoriz hidden') {
-                                    Choices_NewHTML = Choices_NewHTML + "<td>" + FieldChoices[ArrayPos].parentElement.innerHTML + "</td>";
-                                    ChoicesArray[ArrayPos] = FieldChoices[ArrayPos].parentElement; // add existing element to new array
-                                }
-                            }
-                            Choices_NewHTML = Choices_NewHTML + "</tr>";
-                        }
-                    }
-                    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                    //close html table
-                    Choices_NewHTML = Choices_NewHTML + "</table>"
-
-                    // loop through and remove original document elements (all but the first, which we leverage below)
-                    for (x = 1; x < NumberOfChoices; x++) {
-                        ChoicesArray[x].remove();
-                    }
-
-                    // Add new element list (with reordered positions) to replace the old elements (which were just dropped).
-                    ChoicesArray[0].innerHTML = Choices_NewHTML;
                 }
+
+                // Function to reorder choices for vertical layout
+                function reorderChoices(choices, columns) {
+                    let orderedChoices = new Array(choices.length);
+                    let rows = Math.ceil(choices.length / columns);
+
+                    for (let i = 0; i < choices.length; i++) {
+                        let col = Math.floor(i / rows);
+                        let row = i % rows;
+                        let newIndex = row * columns + col;
+                        orderedChoices[newIndex] = choices[i];
+                        console.log(choices[i]);
+                    }
+
+                    return orderedChoices;
+                }
+
+                // Create or find container for the choices
+                var container = FieldChoices[0].parentElement.closest('.mcem-grid-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.classList.add('mcem-grid-container');
+                    FieldChoices[0].parentElement.parentElement.insertBefore(container, FieldChoices[0].parentElement);
+                }
+
+                // Mark the elements as processed
+                FieldChoices[0].setAttribute('data-layout-processed', 'true');
+
+                // Set the number of columns
+                container.style.setProperty('--columns', cols);
+                let orderedVisibleChoices = visibleChoices;
+                // Ensure layout is vertical if required
+                if (FieldChoices[0].parentElement.classList.contains('choicevert')) {
+                    container.classList.add('mcem-vertical');
+                    orderedVisibleChoices = reorderChoices(visibleChoices, cols);
+                } else if (FieldChoices[0].parentElement.classList.contains('choicehoriz')) {
+                    container.classList.add('mcem-horizontal');
+                }
+
+                // Clear the container before adding elements
+                container.innerHTML = '';
+
+                // Reorder visible choices for the vertical layout
+
+
+                // Add visible choices in the correct order
+                orderedVisibleChoices.forEach(function(choice, index) {
+                    var gridItem = document.createElement('div');
+                    gridItem.classList.add('mcem-grid-item');
+                    gridItem.appendChild(choice);
+                    container.appendChild(gridItem);
+                });
+
+                // Append hidden choices at the end
+                hiddenChoices.forEach(function(hiddenElement) {
+                    var gridItem = document.createElement('div');
+                    gridItem.classList.add('mcem-grid-item', 'hidden'); // Maintain grid structure but hidden
+                    gridItem.appendChild(hiddenElement);
+                    container.appendChild(gridItem);
+                });
             }
+
+           
         </script>
+
+
         <?php
     }
 }//end class

@@ -1,9 +1,9 @@
 {
   "name": "Multi-Column Menu",
   "namespace":"JHU\\MultiColumnMenu",
-  "documentation": "README.md",
+  "documentation": "ReadMe.php",
   "description": "Adds an action tag (@COLUMNS), which takes a single integer and splits a set of choices into the specified number of columns (e.g. @COLUMNS=5).",
-  "framework-version": 8,
+  "framework-version": 12,
 
   "authors": [
     {
@@ -16,10 +16,9 @@
       "email": "scarey@jhmi.edu",
       "institution": "Johns Hopkins University"
     }
-  ],
-
-  "permissions": [
-    "redcap_survey_page", "redcap_data_entry_form"
   ]
 
 }
+
+
+
